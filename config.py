@@ -1,0 +1,12 @@
+learning_rate = 1e-5
+batch_size = 32
+output_size = 17
+hidden_size = 256
+embedding_length = 100
+in_channels = 1
+out_channels = 128
+stride = 1
+padding = 0
+EMB_DIM = 100
+keep_probab = 0.5
+kernel_heights = [3, 6, 9]
