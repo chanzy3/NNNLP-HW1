@@ -28,27 +28,22 @@ class CNN(nn.Module):
 		self.label = nn.Linear(len(kernel_heights)*out_channels, output_size)
 	
 	def conv_block(self, input, conv_layer):
-		conv_out = conv_layer(input)# conv_out.size() = (batch_size, out_channels, dim, 1)
-		activation = F.relu(conv_out.squeeze(3))# activation.size() = (batch_size, out_channels, dim1)
-		max_out = F.max_pool1d(activation, activation.size()[2]).squeeze(2)# maxpool_out.size() = (batch_size, out_channels)
-		
+		conv_out = conv_layer(input)
+		activation = F.relu(conv_out.squeeze(3))
+		max_out = F.max_pool1d(activation, activation.size()[2]).squeeze(2)
 		return max_out
 	
 	def forward(self, input_sentences, batch_size=None):
 	
 		
 		input = self.word_embeddings(input_sentences)
-		# input.size() = (batch_size, num_seq, embedding_length)
 		input = input.unsqueeze(1)
-		# input.size() = (batch_size, 1, num_seq, embedding_length)
 		max_out1 = self.conv_block(input, self.conv1)
 		max_out2 = self.conv_block(input, self.conv2)
 		max_out3 = self.conv_block(input, self.conv3)
 		
 		all_out = torch.cat((max_out1, max_out2, max_out3), 1)
-		# all_out.size() = (batch_size, num_kernels*out_channels)
 		fc_in = self.dropout(all_out)
-		# fc_in.size()) = (batch_size, num_kernels*out_channels)
 		logits = self.label(fc_in)
 		
 		return logits
@@ -82,9 +77,9 @@ class CNN_Multichannel(nn.Module):
 		self.label = nn.Linear(len(kernel_heights)*out_channels, output_size)
 	
 	def conv_block(self, input, conv_layer):
-		conv_out = conv_layer(input)# conv_out.size() = (batch_size, out_channels, dim, 1)
-		activation = F.relu(conv_out.squeeze(3))# activation.size() = (batch_size, out_channels, dim1)
-		max_out = F.max_pool1d(activation, activation.size()[2]).squeeze(2)# maxpool_out.size() = (batch_size, out_channels)
+		conv_out = conv_layer(input)
+		activation = F.relu(conv_out.squeeze(3))
+		max_out = F.max_pool1d(activation, activation.size()[2]).squeeze(2)
 		
 		return max_out
 	
@@ -93,23 +88,17 @@ class CNN_Multichannel(nn.Module):
 		
 		fixed_input = self.fixed_embeddings(input_sentences)
 		tuned_input = self.tuned_embeddings(input_sentences)
-		# input.size() = (batch_size, num_seq, embedding_length)
 		fixed_input = fixed_input.unsqueeze(1)
 		tuned_input = tuned_input.unsqueeze(1)
-		# input.size() = (batch_size, 1, num_seq, embedding_length)
 		all_out = []
 		for conv in self.conv_lst:
 			comb_emb = torch.add(fixed_input, tuned_input)
 			pooled = self.conv_block(comb_emb, conv)
 			all_out.append(pooled)
-		#max_out1 = self.conv_block(input, self.conv1)
-		#max_out2 = self.conv_block(input, self.conv2)
-		#max_out3 = self.conv_block(input, self.conv3)
+
 
 		all_out = torch.cat(all_out, 1)
-		# all_out.size() = (batch_size, num_kernels*out_channels)
 		fc_in = self.dropout(all_out)
-		# fc_in.size()) = (batch_size, num_kernels*out_channels)
 		logits = self.label(fc_in)
 		
 		return logits
